@@ -6,12 +6,18 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum Category{
+  ACADEMIC
+  POLITICS
+  SPORT
+  ETC
 }
 
 model User{
@@ -35,6 +41,8 @@ authorId  String
 title     String
 content   String
 tags      String[]
+category  Category      @default(ETC)
 
 createdAt DateTime @default(now())
+updatedAt DateTime 
 }

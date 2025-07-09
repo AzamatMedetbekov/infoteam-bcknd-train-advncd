@@ -47,7 +47,7 @@ export class UserController {
     return this.userService.findAllUsers();
   }
 
-  @Get(':uuid')
+    @Get(':uuid')
   @ApiOperation({
     summary: 'Get a user by UUID',
     description: 'Retrieve a user using UUID',
@@ -61,12 +61,12 @@ export class UserController {
     type: String, 
     description: 'The UUID of the user',
   })
-  @ApiInternalServerErrorResponse({
-    description: 'Internal server error',
-  })
-  @ApiNotFoundResponse({
-    description: 'User not found',
-  })
+    @ApiInternalServerErrorResponse({
+      description: 'Internal server error',
+    })
+    @ApiNotFoundResponse({
+      description: 'User not found',
+    })
   findOne(@Param('uuid') uuid: string) {
     return this.userService.findUser(uuid);
   }

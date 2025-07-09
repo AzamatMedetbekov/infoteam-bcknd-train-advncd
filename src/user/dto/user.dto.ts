@@ -8,7 +8,7 @@ export class CreateUserDto {
     })
     @IsString()
     @IsNotEmpty()
-    name: string;
+    readonly name: string;
 
     @ApiProperty({
         description: 'The username of the user',
@@ -17,7 +17,7 @@ export class CreateUserDto {
     })
     @IsString()
     @IsNotEmpty()
-    username: string;
+    readonly username: string;
 
     @ApiProperty({
         description: 'The email of the user',
@@ -27,7 +27,7 @@ export class CreateUserDto {
     @IsEmail()
     @IsNotEmpty()
     @IsString()
-    email: string;
+    readonly email: string;
 
     @ApiProperty({
         description: 'The password of the user. Minimum length is 8 symbols.',
@@ -37,7 +37,7 @@ export class CreateUserDto {
     @MinLength(8)
     @IsString()
     @IsNotEmpty()
-    password: string;
+    readonly password: string;
 }
 
 
@@ -49,7 +49,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
         required: false,
     })
     @IsString()
-    name?: string;
+    readonly name?: string;
 
     @ApiProperty({
         description: 'The username of the user',
@@ -57,7 +57,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
         required: false,
     })
     @IsString()
-    username?: string;
+    readonly username?: string;
 
     @ApiProperty({
         description: 'The email of the user',
@@ -66,7 +66,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     })
     @IsEmail()
     @IsString()
-    email?: string;
+    readonly email?: string;
 
     @ApiProperty({
         description: 'The password of the user. Minimum length is 8 symbols.',
@@ -75,5 +75,5 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     })
     @MinLength(8)
     @IsString()
-    password?: string;   
+    readonly password?: string;   
 }

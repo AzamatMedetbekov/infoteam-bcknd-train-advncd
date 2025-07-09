@@ -1,20 +1,38 @@
-import { PartialType } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
+import { IsArray, IsDate, IsNotEmpty, IsString } from "class-validator";
+import { Category } from "@prisma/client";
 
 export class CreatePostDto {
-    title:string;
-    content: string;
-    authorId: string;
-    tags?: string[];
-    createdAt?: Date;
-    updatedAt?: Date;
+  @IsString()
+  @ApiProperty({ example: 'this is title' })
+  readonly title: string;
+
+  @IsString()
+  @ApiProperty({ example: 'this is content' })
+  readonly content: string;
+
+  @IsArray()
+  @ApiProperty({ example: ['abc', 'def'] })
+  readonly tags: string[];
+
+  @ApiProperty({ example: 'ACADEMIC' })
+  readonly category: Category;
 }
 
 
 export class UpdatePostDto extends PartialType(CreatePostDto){
+    @IsString()
+    @ApiProperty({ example: 'this is title' })
     title?:string;
+
+    @IsString()
+    @ApiProperty({ example: 'this is content' })
     content?: string;
-    authorId?: string;
+
+    @IsArray()
+    @ApiProperty({ example: ['abc', 'def'] })
     tags?: string[];
-    createdAt?: Date;
-    updatedAt?: Date;
+
+    @ApiProperty({ example: 'ACADEMIC' })
+    category?: Category;
 }
