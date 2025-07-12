@@ -31,9 +31,18 @@ export class UserRepository {
     return users.map(user => plainToInstance(User, user));
   }
 
-  async findOne(uuid: string):Promise<User> {
+  async findOneByEmail(email: string):Promise<User> {
     const user = await this.prisma.user.findUnique({
-      where: { uuid },
+      where: { email: email },
+    });
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);}
+    return plainToInstance(User,user);
+  }
+
+   async findOne(uuid: string):Promise<User> {
+    const user = await this.prisma.user.findUnique({
+      where: { uuid: uuid },
     });
     if (!user) {
       throw new NotFoundException(`User with uuid ${uuid} not found`);}

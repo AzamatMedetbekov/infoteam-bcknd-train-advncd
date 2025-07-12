@@ -49,8 +49,8 @@ export class UserController {
 
     @Get(':uuid')
   @ApiOperation({
-    summary: 'Get a user by UUID',
-    description: 'Retrieve a user using UUID',
+    summary: 'Get a user by uuid',
+    description: 'Retrieve a user using uuid',
   })
   @ApiOkResponse({
     type: User,
@@ -59,7 +59,7 @@ export class UserController {
   @ApiParam({
     name: 'uuid',
     type: String, 
-    description: 'The UUID of the user',
+    description: 'The uuid of the user',
   })
     @ApiInternalServerErrorResponse({
       description: 'Internal server error',

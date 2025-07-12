@@ -30,6 +30,8 @@ name      String
 username  String
 
 posts     Post[]        @relation("UserPosts")
+
+refresh_token   String?
 }
 
 model Post{
