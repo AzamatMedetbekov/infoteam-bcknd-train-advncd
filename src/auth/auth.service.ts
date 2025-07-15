@@ -1,89 +1,74 @@
-import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UserService } from 'src/user/user.service';
-import { AuthRepository } from './auth.repository';
-import { LoginDto } from './dto/login.dto';
-import * as bcrypt from 'bcrypt'
-import { PayloadDto } from './dto/payload.dto';
-import { TokenDto } from './dto/token.dto';
-import { RegisterDto } from './dto/register.dto';
-import { ConfigService } from '@nestjs/config';
+  import { BadRequestException, HttpException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+  import { AuthRepository } from './auth.repository';
+  import { TokenDto } from './dto/token.dto';
+  import { ConfigService } from '@nestjs/config';
+  import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
-@Injectable()
-export class AuthService {
-    private readonly logger = new Logger(AuthService.name)
-    constructor(
-    private jwtService: JwtService,
-    private authRepository: AuthRepository,
-    private configService: ConfigService,
-  ) {}
+  @Injectable()
+  export class AuthService {
+      private readonly logger = new Logger(AuthService.name)
+      constructor(
+      private authRepository: AuthRepository,
+      private configService: ConfigService,
+      private httpService: HttpService,
+    ) {}
 
-  async signUp(body:RegisterDto): Promise<TokenDto>{
-    await this.authRepository.createUser(body)
-    const user = await this.authRepository.findOneByEmail(body.email);
-    const payload: PayloadDto = {email: user.email,uuid: user.uuid}
-    const access_token = await this.jwtService.signAsync(payload, {expiresIn: '15m'})
-    const refresh_token = await this.jwtService.signAsync(payload, {expiresIn: '1d'})
+  async loginOrSignup(code: string, codeVerifier: string): Promise<TokenDto> {
+    try {
+      const clientId = this.configService.get<string>('CLIENT_ID');
+      const clientSecret = this.configService.get<string>('CLIENT_SECRET');
 
-    return {
-      uuid: user.uuid,
-      access_token:access_token,
-      refresh_token: refresh_token,
-    }
-  }
+          if (!code || !codeVerifier) {
+            throw new BadRequestException('Missing required parameters');
+          }
 
-  async logIn(body: LoginDto): Promise<TokenDto>{
-    const user = await this.authRepository.findOneByEmail(body.email);
-    if(!(await bcrypt.compare(body.password, user.password))){
-      throw new UnauthorizedException('Invalid credentials')
-    }
-    const payload : PayloadDto = {email: user.email, uuid: user.uuid};
-    const access_token = await this.jwtService.signAsync(payload);
-    const refresh_token = await this.jwtService.signAsync(payload, {expiresIn: '1d'});
+          const tokenResponse = await firstValueFrom(
+            this.httpService.post(
+              'https://api.idp.gistory.me/oauth/token',
+              new URLSearchParams({
+                grant_type: 'authorization_code',
+                code: code,
+                code_verifier: codeVerifier, 
+              }),
+              {
+                headers: {
+                  Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                timeout: 10000, 
+              },
+            ),
+          );
 
-    await this.authRepository.saveToken(payload.uuid, refresh_token); 
+      const userInfoResponse = await firstValueFrom(
+        this.httpService.get('https://api.idp.gistory.me/oauth/userinfo', {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.data.access_token}`,
+          },
+          timeout: 10000,
+        }),
+      );
 
-    return{
-      uuid: payload.uuid,
-      access_token: access_token,
-      refresh_token: refresh_token,
-    }
-  }
-
-  async refreshToken(refreshToken: string): Promise<TokenDto>{
-    const payload: PayloadDto & {iat; exp} = this.jwtService.verify(refreshToken, 
-      {
-        secret: this.configService.get<string>('JWT_SECRET'),
+      if (!userInfoResponse.data || !userInfoResponse.data.sub) {
+        throw new UnauthorizedException('Invalid user information');
       }
-    );
 
-    const user = await this.authRepository.findUser(payload.uuid);
-    if(refreshToken !== user.refresh_token){
-      throw new UnauthorizedException('Unauthorized action')
-    }
+      const user = await this.authRepository.findOrCreateUser(userInfoResponse.data);
 
-    delete payload.iat
-    delete payload.exp
+      return {
+      access_token: tokenResponse.data.access_token,
+      refresh_token: tokenResponse.data.refresh_token,
+    };
 
-    const access_token = await this.jwtService.signAsync(payload);
-    const refresh_token = await this.jwtService.signAsync(payload);
-
-    this.authRepository.saveToken(payload.uuid, refresh_token)
-
-    return{
-      uuid: payload.uuid,
-      access_token: access_token,
-      refresh_token: refresh_token,
-    }
-  }
-
-  async logOut(access_token: string){
-    const payload: PayloadDto & {iat; exp} = this.jwtService.verify(access_token,
-      {
-        secret: this.configService.get<string>('JWT_SECRET'),
+    } catch (error) {
+      this.logger.error('Login failed', { error: error.message, code });
+      
+      if (error instanceof HttpException) {
+        throw error;
       }
-    );
-
-    return this.authRepository.deleteToken(payload.uuid);
+      
+      throw new UnauthorizedException('Authentication failed');
+    }
   }
 }

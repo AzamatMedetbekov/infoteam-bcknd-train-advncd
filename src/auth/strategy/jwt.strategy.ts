@@ -1,9 +1,11 @@
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { PrismaService } from "src/prisma/prisma.service";
-import { PayloadDto } from "../dto/payload.dto";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ExtractJwt, Strategy } from "passport-jwt";
+import { plainToInstance } from "class-transformer";
+import { UserEntity } from "src/user/entities/user.entity";
+import { PayloadDto } from "../dto/payload.dto";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy){
@@ -12,8 +14,8 @@ export class JwtStrategy extends PassportStrategy(Strategy){
     ){
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            secretOrKey: configService.getOrThrow<string>('JWT_SECRET_KEY'),
             ignoreExpiration: false,
+            secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),
         });
     }
 
@@ -26,6 +28,6 @@ export class JwtStrategy extends PassportStrategy(Strategy){
         if(!user){
             throw new UnauthorizedException();
         }
-        return user;
+        return plainToInstance(UserEntity, user);
     }   
 }

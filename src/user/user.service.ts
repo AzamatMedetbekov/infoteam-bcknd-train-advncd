@@ -1,35 +1,46 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/user.dto';
+import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/user.dto';
 import { UserRepository } from './user.repository';
-import { User } from './entities/user.entity';
+import { UserEntity, UserSubscriptionEntity } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
 
   constructor(private userRepository: UserRepository) {}
 
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
-    return this.userRepository.create(createUserDto);
-  }
-
-  async findAllUsers(): Promise<User[]> {
+  async findAllUsers(): Promise<UserEntity[]> {
     return this.userRepository.findAll();
   }
 
-  async findUser(uuid: string): Promise<User> {
+  async findUser(uuid: string): Promise<UserEntity> {
     return this.userRepository.findOne(uuid);
   }
 
-  async findUserByEmail(email: string): Promise<User>{
-    return this.userRepository.findOneByEmail(email)
-  }
-
-  async updateUser(uuid: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async updateUser(uuid: string, updateUserDto: UpdateUserDto): Promise<UserEntity> {
     return this.userRepository.update(uuid, updateUserDto);
   }
 
-  async deleteUser(uuid:string): Promise<User> {
+  async deleteUser(uuid:string): Promise<UserEntity> {
     return this.userRepository.delete(uuid);
+  }
+
+  async subscribeToCategory(uuid:string, categoryId: number): Promise<UserSubscriptionEntity>{
+    return await this.userRepository.subscribe(uuid,categoryId);
+  }
+
+  async unsubscribeFromCategory(uuid: string, categoryId: number): Promise<UserSubscriptionEntity>{
+    return await this.userRepository.unsubscribe(uuid, categoryId);
+  }
+
+   async getUserSubscriptions(uuid: string): Promise<UserSubscriptionEntity[]> {
+    return await this.userRepository.getUserSubscriptions(uuid);
+  }
+
+  async createCategory(name: string){
+    return await this.userRepository.createCategory(name);
+  }
+
+  async deleteCategory(categoryId: number){
+    return await this.userRepository.deleteCategory(categoryId);
   }
 }

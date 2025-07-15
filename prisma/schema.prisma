@@ -13,25 +13,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Category{
-  ACADEMIC
-  POLITICS
-  SPORT
-  ETC
-}
 
 model User{
 uuid        String      @id @default(uuid())
 
+sub       String
 email     String        @unique
-password  String      
-
 name      String
-username  String
+studentId String  
+phoneNumber String?
 
 posts     Post[]        @relation("UserPosts")
-
-refresh_token   String?
+subscriptions   UserSubscription[]  
 }
 
 model Post{
@@ -42,9 +35,33 @@ authorId  String
 
 title     String
 content   String
-tags      String[]
-category  Category      @default(ETC)
+category  Category?   @relation(fields:[categoryId], references: [id])
+categoryId  Int
+
+deletedAt DateTime?
+isDeleted Boolean @default(false)
 
 createdAt DateTime @default(now())
-updatedAt DateTime 
+updatedAt DateTime @updatedAt
+}
+
+model Category{
+id    Int    @id @default(autoincrement())
+name  String  @unique
+
+deletedAt DateTime?
+isDeleted Boolean  @default(false)
+
+posts Post[]      
+users UserSubscription[]  
+}
+
+model UserSubscription {
+  userId      String
+  categoryId  Int
+
+  user        User     @relation(fields: [userId], references: [uuid])
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  @@id([userId, categoryId])
 }

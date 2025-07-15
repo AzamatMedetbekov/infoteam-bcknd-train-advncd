@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsArray, IsDate, IsNotEmpty, IsString } from "class-validator";
+import { IsArray, IsDate, IsNotEmpty, IsNumber, IsString } from "class-validator";
 import { Category } from "@prisma/client";
 
 export class CreatePostDto {
@@ -11,12 +11,9 @@ export class CreatePostDto {
   @ApiProperty({ example: 'this is content' })
   readonly content: string;
 
-  @IsArray()
-  @ApiProperty({ example: ['abc', 'def'] })
-  readonly tags: string[];
-
-  @ApiProperty({ example: 'ACADEMIC' })
-  readonly category: Category;
+  @IsNumber()
+  @ApiProperty({ example: '(ANNOUNCEMENT, or QNA, or MISC)' })
+  readonly categoryId: number;
 }
 
 
@@ -29,10 +26,6 @@ export class UpdatePostDto extends PartialType(CreatePostDto){
     @ApiProperty({ example: 'this is content' })
     content?: string;
 
-    @IsArray()
-    @ApiProperty({ example: ['abc', 'def'] })
-    tags?: string[];
-
-    @ApiProperty({ example: 'ACADEMIC' })
-    category?: Category;
+    @ApiProperty({ example: '(ANNOUNCEMENT, or QNA, or MISC)' })
+    categoryId?: number;
 }

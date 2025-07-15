@@ -6,12 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
-import * as bcrypt from 'bcrypt';
 import { PrismaClientKnownRequestError } from 'generated/prisma/runtime/library';
 
-const SALT_ROUNDS = 10;
 
 @Injectable()
 export class AuthRepository {
@@ -34,72 +30,28 @@ export class AuthRepository {
     throw new InternalServerErrorException('Internal Server Error');
   }
 
-  async findUser(uuid: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { uuid: uuid },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User is not found');
-    }
-
-    return user;
+  async findOrCreateUser(userInfo) {
+    console.log(userInfo.sub);
+    return await this.prisma.user
+      .findFirst({ where: { sub: userInfo.sub } })
+      .then(async (user) => {
+        if (!user)
+          return await this.prisma.user
+            .create({
+              data: {
+                sub: userInfo.sub,
+                name: userInfo.name,
+                email: userInfo.email,
+                studentId: userInfo.student_id,
+                phoneNumber: userInfo.phone_number,
+              },
+            })
+            .catch((error) => {
+              this.logger.debug(error);
+              this.handlePrismaError;
+            });
+        else return user;
+      });
   }
 
-  async createUser(body: RegisterDto) {
-    try {
-      const hashedPassword = await bcrypt.hash(body.password, SALT_ROUNDS);
-
-      return await this.prisma.user.create({
-        data: {
-          name: body.name,
-          username: body.username,
-          email: body.email,
-          password: hashedPassword,
-        },
-      });
-    } catch (error) {
-      this.logger.debug(error);
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw new ConflictException(`User with email ${body.email} already exists`);
-      }
-
-      throw new InternalServerErrorException('Internal server error');
-    }
-  }
-
-  async findOneByEmail(email: string) {
-      const user = await this.prisma.user.findUnique({
-        where: { email: email },
-      });
-      if (!user) {
-        throw new NotFoundException(`User with email ${email} not found`);}
-      return user;
-    }
-
-  async saveToken(uuid: string, token: string) {
-    try {
-      await this.prisma.user.update({
-        where: { uuid },
-        data: { refresh_token: token },
-      });
-
-      this.logger.log(`Refresh token saved for user ${uuid}`);
-    } catch (error) {
-      this.handlePrismaError(error, uuid);
-    }
-  }
-
-  async deleteToken(uuid: string): Promise<void> {
-    try {
-      await this.prisma.user.update({
-        where: { uuid },
-        data: { refresh_token: null },
-      });
-
-      this.logger.log(`Refresh token deleted for user ${uuid}`);
-    } catch (error) {
-      this.handlePrismaError(error, uuid);
-    }
-  }
 }

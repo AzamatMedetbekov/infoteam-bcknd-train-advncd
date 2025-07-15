@@ -1,32 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, ValidationPipe, ParseIntPipe } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
-import { ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
-import { User } from './entities/user.entity';
+import { UpdateUserDto, SubscriptionDto } from './dto/user.dto';
+import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { UserEntity, UserSubscriptionEntity } from './entities/user.entity';
+import { jwtAuthGuard } from 'src/auth/strategy/jwtAuth.guard';
+import { CreateCategoryDto } from './dto/category.dto';
 
+@ApiTags('Users')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
-
-  @Post()
-  @ApiOperation({
-    summary: 'Create a new user',
-    description: 'Create a new user with the provided details',
-  })
-  @ApiOkResponse({
-    type: CreateUserDto,
-    description: 'User created successfully',
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'Internal server error',
-  })
-  @ApiBody({
-    type: CreateUserDto,
-    description: 'Details of the user to be created',
-  })
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto);
-  }
+  constructor(private readonly userService: UserService) {}
 
   @Get()
   @ApiOperation({
@@ -34,12 +17,13 @@ export class UserController {
     description: 'Retrieve a list of all users',
   })
   @ApiOkResponse({
-    type: [User],
+    type: [UserEntity],
     isArray: true,
     description: 'All users retrieved successfully',
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal server error',})
+    description: 'Internal server error',
+  })
   @ApiNotFoundResponse({
     description: 'No users found',
   })
@@ -47,46 +31,43 @@ export class UserController {
     return this.userService.findAllUsers();
   }
 
-    @Get(':uuid')
+  @Get(':uuid')
   @ApiOperation({
-    summary: 'Get a user by uuid',
-    description: 'Retrieve a user using uuid',
+    summary: 'Get a user by UUID',
+    description: 'Retrieve a user using UUID',
   })
   @ApiOkResponse({
-    type: User,
+    type: UserEntity,
     description: 'User found successfully',
   })
   @ApiParam({
     name: 'uuid',
     type: String, 
-    description: 'The uuid of the user',
+    description: 'The UUID of the user',
   })
-    @ApiInternalServerErrorResponse({
-      description: 'Internal server error',
-    })
-    @ApiNotFoundResponse({
-      description: 'User not found',
-    })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
   findOne(@Param('uuid') uuid: string) {
     return this.userService.findUser(uuid);
   }
 
-  @Patch(':uuid')
+  @ApiBearerAuth()
+  @UseGuards(jwtAuthGuard)
+  @Patch('profile')
   @ApiOperation({
-    summary: 'Update a user by UUID',
-    description: 'Update user details using UUID',
+    summary: 'Update current user profile',
+    description: 'Update the authenticated user\'s profile details',
   })
   @ApiBody({
     type: UpdateUserDto,
     description: 'Details of the user to be updated',
   })
-  @ApiParam({
-    name: 'uuid',
-    type: String,
-    description: 'The UUID of the user to update',
-  })
   @ApiOkResponse({
-    type: User,
+    type: UserEntity,
     description: 'User updated successfully',
   })
   @ApiInternalServerErrorResponse({
@@ -95,14 +76,17 @@ export class UserController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
-  updateUser(@Param('uuid') uuid: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.updateUser(uuid, updateUserDto);
+  updateUser(@Body(ValidationPipe) updateUserDto: UpdateUserDto, @Request() req) {
+    const userId = req.user.uuid;
+    return this.userService.updateUser(userId, updateUserDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(jwtAuthGuard)
   @Delete(':uuid')
   @ApiOperation({
     summary: 'Delete a user by UUID',
-    description: 'Remove a user from the system using UUID',
+    description: 'Remove a user from the system using UUID (Admin only)',
   })
   @ApiParam({
     name: 'uuid',
@@ -110,7 +94,7 @@ export class UserController {
     description: 'The UUID of the user to delete',
   })
   @ApiOkResponse({
-    type:User,
+    type: UserEntity,
     description: 'User deleted successfully',
   })
   @ApiInternalServerErrorResponse({
@@ -121,5 +105,131 @@ export class UserController {
   })
   deleteUser(@Param('uuid') uuid: string) {
     return this.userService.deleteUser(uuid);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(jwtAuthGuard)
+  @Post('subscriptions')
+  @ApiOperation({
+    summary: 'Subscribe to a category',
+    description: 'Create a user subscription to a category'
+  })
+  @ApiBody({
+    type: SubscriptionDto,
+    description: 'Category subscription details'
+  })
+  @ApiOkResponse({
+    type: UserSubscriptionEntity,
+    description: 'User subscribed successfully'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error'
+  })
+  @ApiNotFoundResponse({
+    description: 'Category not found'
+  })
+  subscribeToCategory(@Body(ValidationPipe) subscriptionDto: SubscriptionDto, @Request() req) {
+    const userId = req.user.uuid;
+    return this.userService.subscribeToCategory(userId, subscriptionDto.categoryId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(jwtAuthGuard)
+  @Delete('subscriptions/:categoryId')
+  @ApiOperation({
+    summary: 'Unsubscribe from a category',
+    description: 'Remove a user subscription from a category'
+  })
+  @ApiParam({
+    name: 'categoryId',
+    type: Number,
+    description: 'The ID of the category to unsubscribe from'
+  })
+  @ApiOkResponse({
+    type: UserSubscriptionEntity,
+    description: 'Subscription removed successfully'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error'
+  })
+  @ApiNotFoundResponse({
+    description: 'Subscription not found'
+  })
+  unsubscribeFromCategory(@Param('categoryId', ParseIntPipe) categoryId: number, @Request() req) {
+    const userId = req.user.uuid;
+    return this.userService.unsubscribeFromCategory(userId, categoryId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(jwtAuthGuard)
+  @Get('subscriptions')
+  @ApiOperation({
+    summary: 'Get user subscriptions',
+    description: 'Retrieve all categories the current user is subscribed to'
+  })
+  @ApiOkResponse({
+    type: [UserSubscriptionEntity],
+    isArray: true,
+    description: 'User subscriptions retrieved successfully'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error'
+  })
+  getUserSubscriptions(@Request() req) {
+    const userId = req.user.uuid;
+    return this.userService.getUserSubscriptions(userId);
+  }
+}
+
+
+@ApiTags('Categories')
+@Controller('category')
+export class CategoryController{
+  constructor(private readonly userService: UserService){}
+  
+  @ApiBearerAuth()
+  @UseGuards(jwtAuthGuard)
+  @Post('categories')
+  @ApiOperation({
+    summary:'Create a new category',
+  })
+  @ApiBody({
+    type: CreateCategoryDto,
+    description: 'Details of the new category'
+  })
+  @ApiOkResponse({
+    description: 'Category created successfully'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error'
+  })
+  CreateCategory(@Body(ValidationPipe) createCategoryDto: CreateCategoryDto){
+    return this.userService.createCategory(createCategoryDto.name)
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(jwtAuthGuard)
+  @Delete('categories/:categoryId')
+  @ApiOperation({
+    summary: 'Delete a category',
+    description: 'Delete one type of category from DB'
+  })
+  @ApiParam({
+    name: 'categoryId',
+    type: Number,
+    description: 'The ID of the category to delete'
+  })
+  @ApiOkResponse({
+    type: String,
+    description: 'Category deleted successfully'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error'
+  })
+  @ApiNotFoundResponse({
+    description: 'Category not found'
+  })
+  DeleteCategory(@Param('categoryId', ParseIntPipe) categoryId: number) {
+    return this.userService.deleteCategory(categoryId);
   }
 }

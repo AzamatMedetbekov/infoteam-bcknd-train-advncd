@@ -10,8 +10,12 @@ export type PostFullContent = Prisma.PostGetPayload<{
       };
     };
     content: true;
-    category: true;
-    tags: true;
+    category: {
+      select:{
+        id: true,
+        name: true,
+      }
+    }
     title: true;
     createdAt: true;
     updatedAt: true;
