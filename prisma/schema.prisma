@@ -17,8 +17,8 @@ datasource db {
 model User{
 uuid        String      @id @default(uuid())
 
-sub       String
-email     String        @unique
+sub       String        @unique
+email     String        
 name      String
 studentId String  
 phoneNumber String?
