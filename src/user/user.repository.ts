@@ -1,4 +1,4 @@
-import {ConflictException, Injectable, InternalServerErrorException, UseFilters } from '@nestjs/common';
+import {Injectable, InternalServerErrorException, UseFilters } from '@nestjs/common';
 import { UpdateUserDto,} from './dto/user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserEntity, UserSubscriptionEntity} from './entities/user.entity';
@@ -120,35 +120,6 @@ try{
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Internal Server Error');
-    }
-  }
-
-  async createCategory(name: string){
-   try { await this.prisma.category.create({
-      data:{
-        name: name,
-      }
-    })
-   }catch(error){
-    if(error instanceof PrismaClientKnownRequestError && error.code === 'P2002'){
-      throw new ConflictException("A category with this name already exists")
-    }
-    throw new InternalServerErrorException('Internal Server Error')
-   }
-  }
-
-  async deleteCategory(categoryId: number){
-    try{
-      await this.prisma.category.delete({
-        where: {
-          id: categoryId,
-        }
-      })
-    }catch(error){
-      if(error instanceof PrismaClientKnownRequestError && error.code === 'P2025'){
-        throw new NotFoundException('Category with this ID not found')
-      }
-      throw new InternalServerErrorException('Internal Server Error')
     }
   }
 }

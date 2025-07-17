@@ -8,16 +8,22 @@ import { firstValueFrom } from 'rxjs';
   @Injectable()
   export class AuthService {
       private readonly logger = new Logger(AuthService.name)
+      private readonly clientId;
+      private readonly clientSecret;
+      private readonly idpUrl;
+
       constructor(
       private authRepository: AuthRepository,
       private configService: ConfigService,
       private httpService: HttpService,
-    ) {}
+    ) {
+      this.clientId = this.configService.get<string>("CLIENT_ID")
+      this.clientSecret= this.configService.get<string>("CLIENT_SECRET")
+      this.idpUrl = this.configService.get<string>("IDP_GIST_URL")
+    }
 
   async loginOrSignup(code: string, codeVerifier: string): Promise<TokenDto> {
     try {
-      const clientId = this.configService.get<string>('CLIENT_ID');
-      const clientSecret = this.configService.get<string>('CLIENT_SECRET');
 
           if (!code || !codeVerifier) {
             throw new BadRequestException('Missing required parameters');
@@ -25,7 +31,7 @@ import { firstValueFrom } from 'rxjs';
 
           const tokenResponse = await firstValueFrom(
             this.httpService.post(
-              'https://api.idp.gistory.me/oauth/token',
+              `${this.idpUrl}/oauth/token`,
               new URLSearchParams({
                 grant_type: 'authorization_code',
                 code: code,
@@ -33,7 +39,7 @@ import { firstValueFrom } from 'rxjs';
               }),
               {
                 headers: {
-                  Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+                  Authorization: `Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64')}`,
                   'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 timeout: 10000, 
@@ -42,7 +48,7 @@ import { firstValueFrom } from 'rxjs';
           );
 
       const userInfoResponse = await firstValueFrom(
-        this.httpService.get('https://api.idp.gistory.me/oauth/userinfo', {
+        this.httpService.get(`${this.idpUrl}/oauth/userinfo`, {
           headers: {
             Authorization: `Bearer ${tokenResponse.data.access_token}`,
           },

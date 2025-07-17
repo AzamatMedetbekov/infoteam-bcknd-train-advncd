@@ -4,9 +4,7 @@ import { CreatePostDto } from './dto/post.dto';
 import { UpdatePostDto } from './dto/post.dto';
 import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { jwtAuthGuard } from 'src/auth/strategy/jwtAuth.guard';
-import { HttpExceptionFilter } from 'src/filter/http-exception.filter';
 
-@UseFilters(HttpExceptionFilter)
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) { }
@@ -27,7 +25,7 @@ export class PostController {
   @ApiInternalServerErrorResponse({
     description: 'Internal server error',
   })
-  CreatePost(@Body() createPostDto: CreatePostDto, @Request() req) {
+  createPost(@Body() createPostDto: CreatePostDto, @Request() req) {
     const authorId = req.user.uuid;
     return this.postService.createPost(createPostDto, authorId);
   }
@@ -49,7 +47,7 @@ export class PostController {
   @ApiNotFoundResponse({
       description: 'User not found',
     })
-  FindPost(@Param('uuid') uuid: string) {
+  findPost(@Param('uuid') uuid: string) {
     return this.postService.findPost(uuid);
   }
 
@@ -77,7 +75,7 @@ export class PostController {
   @ApiNotFoundResponse({
     description: 'Post not found',
   })
-  UpdatePost(@Param('uuid') uuid: string, @Body() updatePostDto: UpdatePostDto, @Request() req) {
+  updatePost(@Param('uuid') uuid: string, @Body() updatePostDto: UpdatePostDto, @Request() req) {
     const authorId = req.user.uuid;
     return this.postService.updatePost(uuid, updatePostDto, authorId);
   }
@@ -101,7 +99,7 @@ export class PostController {
   @ApiNotFoundResponse({
     description: 'Post not found',
   })
-  SoftDeletePost(@Param('uuid') uuid: string, @Request() req) {
+  softDeletePost(@Param('uuid') uuid: string, @Request() req) {
     const authorId = req.user.uuid;
     return this.postService.deletePost(uuid, authorId);
   }
@@ -125,7 +123,7 @@ export class PostController {
   @ApiNotFoundResponse({
     description: 'Post not found',
   })
-  HardDeletePost(@Param('uuid') uuid: string, @Request() req) {
+  hardDeletePost(@Param('uuid') uuid: string, @Request() req) {
     const authorId = req.user.uuid;
     return this.postService.hardDeletePost(uuid, authorId);
   }
@@ -150,7 +148,7 @@ export class PostController {
   @ApiNotFoundResponse({
     description: 'Post not found',
   })
-  RestorePost(@Param('uuid') uuid: string, @Request() req) {
+  restorePost(@Param('uuid') uuid: string, @Request() req) {
     const authorId = req.user.uuid;
     return this.postService.restorePost(uuid, authorId);
   }

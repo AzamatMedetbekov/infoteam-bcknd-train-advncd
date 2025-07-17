@@ -35,12 +35,4 @@ export class UserService {
    async getUserSubscriptions(uuid: string): Promise<UserSubscriptionEntity[]> {
     return await this.userRepository.getUserSubscriptions(uuid);
   }
-
-  async createCategory(name: string){
-    return await this.userRepository.createCategory(name);
-  }
-
-  async deleteCategory(categoryId: number){
-    return await this.userRepository.deleteCategory(categoryId);
-  }
 }

@@ -3,9 +3,8 @@ import {  ApiBody, ApiInternalServerErrorResponse, ApiOperation,  } from '@nestj
 import { AuthService } from './auth.service';
 import { HttpExceptionFilter } from 'src/filter/http-exception.filter';
 import { LoginDto } from './dto/login.dto';
-import { TokenDto } from './dto/token.dto';
-
-@UseFilters(HttpExceptionFilter)
+import { TokenDto } from './dto/token.dto'; 
+  
 @Controller('auth')
 export class AuthController {
 constructor(private authService: AuthService){}
