@@ -21,7 +21,7 @@ sub       String        @unique
 email     String        
 name      String
 studentId String  
-phoneNumber String?
+phoneNumber String
 
 posts     Post[]        @relation("UserPosts")
 subscriptions   UserSubscription[]  

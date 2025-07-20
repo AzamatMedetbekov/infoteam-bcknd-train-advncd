@@ -6,13 +6,33 @@ services:
     container_name: my_postgres
     restart: always
     environment:
-      POSTGRES_USER: azamat
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: advncd_training
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5431:5432"
+      - "5431:5432"  
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: my_app
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - push-server
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - JWT_SECRET=${JWT_SECRET}
+
+  push-server:
+    image: yeonhyukkim/fake-push-server:latest
+    container_name: my_push_server
+    restart: always
 
 volumes:
   postgres_data:

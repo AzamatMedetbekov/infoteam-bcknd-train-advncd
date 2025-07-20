@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePostDto , UpdatePostDto} from './dto/post.dto';
 import { PostRepository } from './post.repository';
-
+import { from, mergeMap } from 'rxjs';
 @Injectable()
 export class PostService {
   constructor(private readonly postRepository: PostRepository) {}
 
   async createPost(createPostDto: CreatePostDto, authorId: string) {
-    return await this.postRepository.create(createPostDto, authorId);
+    return await this.postRepository.create(createPostDto, authorId)
   }
 
   async findPost(uuid: string) {
