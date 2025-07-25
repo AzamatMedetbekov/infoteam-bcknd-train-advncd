@@ -9,8 +9,7 @@ import {
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PostFullContent } from './entities/post.entity';
-import { UserEntity } from 'src/user/entities/user.entity';
-import { catchError, firstValueFrom, from, mergeMap, Observable, of, switchMap, toArray } from 'rxjs';
+import { catchError, from, mergeMap, Observable, of, switchMap, toArray } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 
@@ -179,6 +178,29 @@ export class PostRepository {
       throw new NotFoundException(`Post with uuid ${uuid} not found`);
     }
     return post;
+  }
+
+  async userPostList(userId: string) {
+    try {
+      const result = await this.prisma.post.findMany({
+        skip: 5,
+        take: 10,
+        where: {
+          authorId: userId,
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+    } catch (error) {
+      if (error instanceof NotFoundException ||
+        error instanceof ForbiddenException ||
+        error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error)
+      throw new InternalServerErrorException('Error when getting number of posts grouped by category');
+    }
   }
 
   async restore(uuid: string, authorId: string): Promise<PostFullContent> {

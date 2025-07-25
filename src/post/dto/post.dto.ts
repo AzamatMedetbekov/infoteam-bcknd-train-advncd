@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsArray, IsDate, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsArray, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 import { Category } from "@prisma/client";
 
 export class CreatePostDto {

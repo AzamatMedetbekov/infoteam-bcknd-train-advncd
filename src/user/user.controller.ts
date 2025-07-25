@@ -1,14 +1,14 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, ValidationPipe, ParseIntPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto, SubscriptionDto } from './dto/user.dto';
-import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserEntity, UserSubscriptionEntity } from './entities/user.entity';
 import { jwtAuthGuard } from 'src/auth/strategy/jwtAuth.guard';
 
 @ApiTags('Users')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get()
   @ApiOperation({
@@ -41,7 +41,7 @@ export class UserController {
   })
   @ApiParam({
     name: 'uuid',
-    type: String, 
+    type: String,
     description: 'The UUID of the user',
   })
   @ApiInternalServerErrorResponse({
@@ -166,10 +166,15 @@ export class UserController {
     summary: 'Get user subscriptions',
     description: 'Retrieve all categories the current user is subscribed to'
   })
+  
   @ApiOkResponse({
     type: [UserSubscriptionEntity],
     isArray: true,
     description: 'User subscriptions retrieved successfully'
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized.'
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal server error'

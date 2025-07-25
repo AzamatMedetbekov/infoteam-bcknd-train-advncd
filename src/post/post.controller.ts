@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, UseFilters } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/post.dto';
 import { UpdatePostDto } from './dto/post.dto';
-import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { jwtAuthGuard } from 'src/auth/strategy/jwtAuth.guard';
 
 @Controller('post')
@@ -35,18 +35,19 @@ export class PostController {
     summary: "Get a post via UUID",
   })
   @ApiOkResponse({
-    description: "Found a post via UUID",})
+    description: "Found a post via UUID",
+  })
   @ApiParam({
     name: 'uuid',
     type: String,
     description: 'The UUID of the post to retrieve',
   })
   @ApiInternalServerErrorResponse({
-      description: 'Internal server error',
-    })
+    description: 'Internal server error',
+  })
   @ApiNotFoundResponse({
-      description: 'User not found',
-    })
+    description: 'User not found',
+  })
   findPost(@Param('uuid') uuid: string) {
     return this.postService.findPost(uuid);
   }
@@ -71,7 +72,7 @@ export class PostController {
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal server error',
-})
+  })
   @ApiNotFoundResponse({
     description: 'Post not found',
   })
@@ -84,7 +85,8 @@ export class PostController {
   @Delete(':uuid')
   @UseGuards(jwtAuthGuard)
   @ApiOperation({
-    summary: "Soft delete a post by UUID",})
+    summary: "Soft delete a post by UUID",
+  })
   @ApiOkResponse({
     description: "Post soft-deleted successfully",
   })
@@ -108,7 +110,8 @@ export class PostController {
   @Delete(':uuid')
   @UseGuards(jwtAuthGuard)
   @ApiOperation({
-    summary: "Delete a post by UUID permanently",})
+    summary: "Delete a post by UUID permanently",
+  })
   @ApiOkResponse({
     description: "Post deleted successfully",
   })
@@ -144,12 +147,31 @@ export class PostController {
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal server error',
-})
+  })
   @ApiNotFoundResponse({
     description: 'Post not found',
   })
   restorePost(@Param('uuid') uuid: string, @Request() req) {
     const authorId = req.user.uuid;
     return this.postService.restorePost(uuid, authorId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(jwtAuthGuard)
+  @Get('overview/posts')
+  @ApiOperation({
+    summary: 'Get post list',
+    description: 'Get current user post list, skip: 5, take: 10',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+  })
+  getPostNumberByCategory(@Request() req) {
+    const userId = req.user.uuid;
+    return this.postService.getUserPostList(userId);
   }
 }
