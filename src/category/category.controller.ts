@@ -1,13 +1,34 @@
-import { Controller, Post, Body, Param, Delete, UseGuards, ValidationPipe, ParseIntPipe, Get, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UseGuards,
+  ValidationPipe,
+  ParseIntPipe,
+  Get,
+  Request,
+} from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { jwtAuthGuard } from 'src/auth/strategy/jwtAuth.guard';
 import { CategoryInfoForUser, CreateCategoryDto } from './dto/category.dto';
 
 @ApiTags('Categories')
 @Controller('category')
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) { }
+  constructor(private readonly categoryService: CategoryService) {}
 
   @ApiBearerAuth()
   @UseGuards(jwtAuthGuard)
@@ -17,16 +38,16 @@ export class CategoryController {
   })
   @ApiBody({
     type: CreateCategoryDto,
-    description: 'Details of the new category'
+    description: 'Details of the new category',
   })
   @ApiOkResponse({
-    description: 'Category created successfully'
+    description: 'Category created successfully',
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal server error'
+    description: 'Internal server error',
   })
   createCategory(@Body(ValidationPipe) createCategoryDto: CreateCategoryDto) {
-    return this.categoryService.createCategory(createCategoryDto.name)
+    return this.categoryService.createCategory(createCategoryDto.name);
   }
 
   @ApiBearerAuth()
@@ -34,29 +55,27 @@ export class CategoryController {
   @Delete('categories/:categoryId')
   @ApiOperation({
     summary: 'Delete a category',
-    description: 'Delete one type of category from DB'
+    description: 'Delete one type of category from DB',
   })
   @ApiParam({
     name: 'categoryId',
     type: Number,
-    description: 'The ID of the category to delete'
+    description: 'The ID of the category to delete',
   })
   @ApiOkResponse({
     type: String,
-    description: 'Category deleted successfully'
+    description: 'Category deleted successfully',
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal server error'
+    description: 'Internal server error',
   })
   @ApiNotFoundResponse({
-    description: 'Category not found'
+    description: 'Category not found',
   })
   deleteCategory(@Param('categoryId', ParseIntPipe) categoryId: number) {
     return this.categoryService.deleteCategory(categoryId);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(jwtAuthGuard)
   @Get('overview/subscribers')
   @ApiOperation({
     summary: 'Get overview of categories',
@@ -64,7 +83,7 @@ export class CategoryController {
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized'
+    description: 'Unauthorized',
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal server error',
@@ -78,16 +97,17 @@ export class CategoryController {
   @Get('user-summary')
   @ApiOperation({
     summary: 'Get user category info',
-    description: 'Get category information for the user, including subscription status and post count.'
+    description:
+      'Get category information for the user, including subscription status and post count.',
   })
   @ApiOkResponse({
     type: [CategoryInfoForUser],
     isArray: true,
-    description: 'User category information retrived successfully'
+    description: 'User category information retrived successfully',
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized.'
+    description: 'Unauthorized.',
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal server error',
@@ -97,8 +117,6 @@ export class CategoryController {
     return this.categoryService.getCategoryInfoForCurrentUser(userId);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(jwtAuthGuard)
   @Get('overview/posts')
   @ApiOperation({
     summary: 'Get overview of categories',
@@ -106,7 +124,7 @@ export class CategoryController {
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized'
+    description: 'Unauthorized',
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal server error',

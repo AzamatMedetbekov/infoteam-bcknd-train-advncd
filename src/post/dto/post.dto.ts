@@ -1,6 +1,6 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsArray, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
-import { Category } from "@prisma/client";
+import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { IsNumber, IsString } from 'class-validator';
+import { Category } from '@prisma/client';
 
 export class CreatePostDto {
   @IsString()
@@ -16,16 +16,23 @@ export class CreatePostDto {
   readonly categoryId: number;
 }
 
+export class UpdatePostDto extends PartialType(CreatePostDto) {
+  @IsString()
+  @ApiProperty({ example: 'this is title' })
+  title?: string;
 
-export class UpdatePostDto extends PartialType(CreatePostDto){
-    @IsString()
-    @ApiProperty({ example: 'this is title' })
-    title?:string;
+  @IsString()
+  @ApiProperty({ example: 'this is content' })
+  content?: string;
 
-    @IsString()
-    @ApiProperty({ example: 'this is content' })
-    content?: string;
+  @ApiProperty({ example: '(ANNOUNCEMENT, or QNA, or MISC)' })
+  categoryId?: number;
+}
 
-    @ApiProperty({ example: '(ANNOUNCEMENT, or QNA, or MISC)' })
-    categoryId?: number;
+export class PaginationDto {
+  @IsNumber()
+  @ApiProperty({
+    example: '5',
+  })
+  skipNumber: number;
 }

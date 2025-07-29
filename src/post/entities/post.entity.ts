@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from '@prisma/client';
 
 export type PostFullContent = Prisma.PostGetPayload<{
   include: {
@@ -11,11 +11,11 @@ export type PostFullContent = Prisma.PostGetPayload<{
     };
     content: true;
     category: {
-      select:{
-        id: true,
-        name: true,
-      }
-    }
+      select: {
+        id: true;
+        name: true;
+      };
+    };
     title: true;
     createdAt: true;
     updatedAt: true;

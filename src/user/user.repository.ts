@@ -1,5 +1,9 @@
-import { Injectable, InternalServerErrorException, UseFilters } from '@nestjs/common';
-import { UpdateUserDto, } from './dto/user.dto';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UseFilters,
+} from '@nestjs/common';
+import { UpdateUserDto } from './dto/user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserEntity, UserSubscriptionEntity } from './entities/user.entity';
 import { NotFoundException } from '@nestjs/common';
@@ -10,11 +14,11 @@ import { HttpExceptionFilter } from 'src/filter/http-exception.filter';
 @UseFilters(HttpExceptionFilter)
 @Injectable()
 export class UserRepository {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async findAll(): Promise<UserEntity[]> {
     const users = await this.prisma.user.findMany();
-    return users.map(user => plainToInstance(UserEntity, user));
+    return users.map((user) => plainToInstance(UserEntity, user));
   }
 
   async findOne(uuid: string): Promise<UserEntity> {
@@ -27,7 +31,10 @@ export class UserRepository {
     return plainToInstance(UserEntity, user);
   }
 
-  async update(uuid: string, { name, email, phoneNumber, studentId }: UpdateUserDto): Promise<UserEntity> {
+  async update(
+    uuid: string,
+    { name, email, phoneNumber, studentId }: UpdateUserDto
+  ): Promise<UserEntity> {
     try {
       const user = await this.prisma.user.update({
         where: { uuid: uuid },
@@ -36,8 +43,8 @@ export class UserRepository {
           email: email,
           phoneNumber: phoneNumber,
           studentId: studentId,
-        }
-      })
+        },
+      });
       return plainToInstance(UserEntity, user);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -57,7 +64,7 @@ export class UserRepository {
       });
       const user = await this.prisma.user.delete({
         where: { uuid },
-      })
+      });
       return plainToInstance(UserEntity, user);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -70,43 +77,55 @@ export class UserRepository {
     }
   }
 
-  async subscribe(uuid: string, categoryId: number): Promise<UserSubscriptionEntity> {
+  async subscribe(
+    uuid: string,
+    categoryId: number
+  ): Promise<UserSubscriptionEntity> {
     try {
       const subs = await this.prisma.userSubscription.create({
         data: {
           user: {
-            connect: { uuid: uuid }
+            connect: { uuid: uuid },
           },
           category: {
-            connect: { id: categoryId }
-          }
-        }
-      })
-      return plainToInstance(UserSubscriptionEntity, subs)
+            connect: { id: categoryId },
+          },
+        },
+      });
+      return plainToInstance(UserSubscriptionEntity, subs);
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new NotFoundException('User is not found')
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('User is not found');
       }
-      throw new InternalServerErrorException('Internal Server Error')
+      throw new InternalServerErrorException('Internal Server Error');
     }
   }
 
-  async unsubscribe(uuid: string, categoryId: number): Promise<UserSubscriptionEntity> {
+  async unsubscribe(
+    uuid: string,
+    categoryId: number
+  ): Promise<UserSubscriptionEntity> {
     try {
       const subs = await this.prisma.userSubscription.delete({
         where: {
           userId_categoryId: {
             userId: uuid,
             categoryId: categoryId,
-          }
-        }
-      })
-      return plainToInstance(UserSubscriptionEntity, subs)
+          },
+        },
+      });
+      return plainToInstance(UserSubscriptionEntity, subs);
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new NotFoundException('Not Found')
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Not Found');
       }
-      throw new InternalServerErrorException('Internal Server Error')
+      throw new InternalServerErrorException('Internal Server Error');
     }
   }
 
@@ -114,10 +133,12 @@ export class UserRepository {
     try {
       const subscriptions = await this.prisma.userSubscription.findMany({
         where: {
-          userId: uuid
-        }
+          userId: uuid,
+        },
       });
-      return subscriptions.map(sub => plainToInstance(UserSubscriptionEntity, sub));
+      return subscriptions.map((sub) =>
+        plainToInstance(UserSubscriptionEntity, sub)
+      );
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Internal Server Error');

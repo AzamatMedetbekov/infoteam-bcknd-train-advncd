@@ -8,11 +8,10 @@ export class UserEntity {
   studentId: string;
   phoneNumber: string;
 
-  
   @Exclude()
   password?: string;
 
-   @Exclude()
+  @Exclude()
   refresh_token?: string;
 
   constructor(partial: Partial<UserEntity>) {
@@ -20,10 +19,9 @@ export class UserEntity {
   }
 }
 
-
 export class UserSubscriptionEntity {
   userId: string;
-  categoryId: number; 
+  categoryId: number;
 
   @Exclude()
   user?: User;

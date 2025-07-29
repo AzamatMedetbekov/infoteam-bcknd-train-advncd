@@ -4,7 +4,7 @@ import { CategoryInfoForUser } from './dto/category.dto';
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly categoryRepository: CategoryRepository) { }
+  constructor(private readonly categoryRepository: CategoryRepository) {}
 
   async createCategory(name: string) {
     return await this.categoryRepository.createCategory(name);
@@ -14,7 +14,9 @@ export class CategoryService {
     return await this.categoryRepository.deleteCategory(categoryId);
   }
 
-  async getCategoryInfoForCurrentUser(uuid: string): Promise<CategoryInfoForUser[]> {
+  async getCategoryInfoForCurrentUser(
+    uuid: string
+  ): Promise<CategoryInfoForUser[]> {
     return await this.categoryRepository.getCategoryInfoForUser(uuid);
   }
 

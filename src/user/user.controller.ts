@@ -1,14 +1,36 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, ValidationPipe, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  ValidationPipe,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto, SubscriptionDto } from './dto/user.dto';
-import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UserEntity, UserSubscriptionEntity } from './entities/user.entity';
 import { jwtAuthGuard } from 'src/auth/strategy/jwtAuth.guard';
 
 @ApiTags('Users')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @Get()
   @ApiOperation({
@@ -59,7 +81,7 @@ export class UserController {
   @Patch('profile')
   @ApiOperation({
     summary: 'Update current user profile',
-    description: 'Update the authenticated user\'s profile details',
+    description: "Update the authenticated user's profile details",
   })
   @ApiBody({
     type: UpdateUserDto,
@@ -75,7 +97,10 @@ export class UserController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
-  updateUser(@Body(ValidationPipe) updateUserDto: UpdateUserDto, @Request() req) {
+  updateUser(
+    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+    @Request() req
+  ) {
     const userId = req.user.uuid;
     return this.userService.updateUser(userId, updateUserDto);
   }
@@ -111,25 +136,31 @@ export class UserController {
   @Post('subscriptions')
   @ApiOperation({
     summary: 'Subscribe to a category',
-    description: 'Create a user subscription to a category'
+    description: 'Create a user subscription to a category',
   })
   @ApiBody({
     type: SubscriptionDto,
-    description: 'Category subscription details'
+    description: 'Category subscription details',
   })
   @ApiOkResponse({
     type: UserSubscriptionEntity,
-    description: 'User subscribed successfully'
+    description: 'User subscribed successfully',
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal server error'
+    description: 'Internal server error',
   })
   @ApiNotFoundResponse({
-    description: 'Category not found'
+    description: 'Category not found',
   })
-  subscribeToCategory(@Body(ValidationPipe) subscriptionDto: SubscriptionDto, @Request() req) {
+  subscribeToCategory(
+    @Body(ValidationPipe) subscriptionDto: SubscriptionDto,
+    @Request() req
+  ) {
     const userId = req.user.uuid;
-    return this.userService.subscribeToCategory(userId, subscriptionDto.categoryId);
+    return this.userService.subscribeToCategory(
+      userId,
+      subscriptionDto.categoryId
+    );
   }
 
   @ApiBearerAuth()
@@ -137,24 +168,27 @@ export class UserController {
   @Delete('subscriptions/:categoryId')
   @ApiOperation({
     summary: 'Unsubscribe from a category',
-    description: 'Remove a user subscription from a category'
+    description: 'Remove a user subscription from a category',
   })
   @ApiParam({
     name: 'categoryId',
     type: Number,
-    description: 'The ID of the category to unsubscribe from'
+    description: 'The ID of the category to unsubscribe from',
   })
   @ApiOkResponse({
     type: UserSubscriptionEntity,
-    description: 'Subscription removed successfully'
+    description: 'Subscription removed successfully',
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal server error'
+    description: 'Internal server error',
   })
   @ApiNotFoundResponse({
-    description: 'Subscription not found'
+    description: 'Subscription not found',
   })
-  unsubscribeFromCategory(@Param('categoryId', ParseIntPipe) categoryId: number, @Request() req) {
+  unsubscribeFromCategory(
+    @Param('categoryId', ParseIntPipe) categoryId: number,
+    @Request() req
+  ) {
     const userId = req.user.uuid;
     return this.userService.unsubscribeFromCategory(userId, categoryId);
   }
@@ -164,20 +198,19 @@ export class UserController {
   @Get('subscriptions')
   @ApiOperation({
     summary: 'Get user subscriptions',
-    description: 'Retrieve all categories the current user is subscribed to'
+    description: 'Retrieve all categories the current user is subscribed to',
   })
-  
   @ApiOkResponse({
     type: [UserSubscriptionEntity],
     isArray: true,
-    description: 'User subscriptions retrieved successfully'
+    description: 'User subscriptions retrieved successfully',
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized.'
+    description: 'Unauthorized.',
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal server error'
+    description: 'Internal server error',
   })
   getUserSubscriptions(@Request() req) {
     const userId = req.user.uuid;

@@ -1,26 +1,45 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { PostService } from './post.service';
-import { CreatePostDto } from './dto/post.dto';
+import { CreatePostDto, PaginationDto } from './dto/post.dto';
 import { UpdatePostDto } from './dto/post.dto';
-import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { jwtAuthGuard } from 'src/auth/strategy/jwtAuth.guard';
 
 @Controller('post')
 export class PostController {
-  constructor(private readonly postService: PostService) { }
+  constructor(private readonly postService: PostService) {}
 
   @ApiBearerAuth()
   @Post()
   @UseGuards(jwtAuthGuard)
   @ApiOperation({
-    summary: "Create a new post",
+    summary: 'Create a new post',
   })
   @ApiOkResponse({
-    description: "Post created successfully",
+    description: 'Post created successfully',
   })
   @ApiBody({
     type: CreatePostDto,
-    description: "Details of the post to be created",
+    description: 'Details of the post to be created',
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal server error',
@@ -32,10 +51,10 @@ export class PostController {
 
   @Get(':uuid')
   @ApiOperation({
-    summary: "Get a post via UUID",
+    summary: 'Get a post via UUID',
   })
   @ApiOkResponse({
-    description: "Found a post via UUID",
+    description: 'Found a post via UUID',
   })
   @ApiParam({
     name: 'uuid',
@@ -56,14 +75,14 @@ export class PostController {
   @Patch(':uuid')
   @UseGuards(jwtAuthGuard)
   @ApiOperation({
-    summary: "Update a post by UUID",
+    summary: 'Update a post by UUID',
   })
   @ApiOkResponse({
-    description: "Post updated successfully",
+    description: 'Post updated successfully',
   })
   @ApiBody({
     type: UpdatePostDto,
-    description: "Details of the post to be updated",
+    description: 'Details of the post to be updated',
   })
   @ApiParam({
     name: 'uuid',
@@ -76,7 +95,11 @@ export class PostController {
   @ApiNotFoundResponse({
     description: 'Post not found',
   })
-  updatePost(@Param('uuid') uuid: string, @Body() updatePostDto: UpdatePostDto, @Request() req) {
+  updatePost(
+    @Param('uuid') uuid: string,
+    @Body() updatePostDto: UpdatePostDto,
+    @Request() req
+  ) {
     const authorId = req.user.uuid;
     return this.postService.updatePost(uuid, updatePostDto, authorId);
   }
@@ -85,10 +108,10 @@ export class PostController {
   @Delete(':uuid')
   @UseGuards(jwtAuthGuard)
   @ApiOperation({
-    summary: "Soft delete a post by UUID",
+    summary: 'Soft delete a post by UUID',
   })
   @ApiOkResponse({
-    description: "Post soft-deleted successfully",
+    description: 'Post soft-deleted successfully',
   })
   @ApiParam({
     name: 'uuid',
@@ -110,10 +133,10 @@ export class PostController {
   @Delete(':uuid')
   @UseGuards(jwtAuthGuard)
   @ApiOperation({
-    summary: "Delete a post by UUID permanently",
+    summary: 'Delete a post by UUID permanently',
   })
   @ApiOkResponse({
-    description: "Post deleted successfully",
+    description: 'Post deleted successfully',
   })
   @ApiParam({
     name: 'uuid',
@@ -135,10 +158,10 @@ export class PostController {
   @Patch(':uuid/restore')
   @UseGuards(jwtAuthGuard)
   @ApiOperation({
-    summary: "Restore a post by UUID",
+    summary: 'Restore a post by UUID',
   })
   @ApiOkResponse({
-    description: "Post updated successfully",
+    description: 'Post updated successfully',
   })
   @ApiParam({
     name: 'uuid',
@@ -163,15 +186,18 @@ export class PostController {
     summary: 'Get post list',
     description: 'Get current user post list, skip: 5, take: 10',
   })
+  @ApiBody({
+    type: PaginationDto,
+  })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized'
+    description: 'Unauthorized',
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal server error',
   })
-  getPostNumberByCategory(@Request() req) {
+  getPostNumberByCategory(@Request() req, paginationDto: PaginationDto) {
     const userId = req.user.uuid;
-    return this.postService.getUserPostList(userId);
+    return this.postService.getUserPostList(userId, paginationDto.skipNumber);
   }
 }

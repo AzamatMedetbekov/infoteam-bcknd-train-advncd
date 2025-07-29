@@ -8,7 +8,6 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PrismaClientKnownRequestError } from 'generated/prisma/runtime/library';
 
-
 @Injectable()
 export class AuthRepository {
   private readonly logger = new Logger(AuthRepository.name);
@@ -53,5 +52,4 @@ export class AuthRepository {
         else return user;
       });
   }
-
 }
