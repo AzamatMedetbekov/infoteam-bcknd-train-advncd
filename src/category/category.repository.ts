@@ -91,7 +91,7 @@ export class CategoryRepository {
         (us."userId" IS NOT NULL) AS "isSubscribed",
         COUNT(p.id) AS "postCount" 
       FROM "Category" c
-      LEFT JOIN "UserSubscription" us
+      INNER JOIN "UserSubscription" us
         ON c.id = us."categoryId" AND us."userId" = ${userId}
       LEFT JOIN "Post" p
         ON p."categoryId" = c.id AND p."authorId" = ${userId}
